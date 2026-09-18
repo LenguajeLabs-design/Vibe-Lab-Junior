@@ -1,6 +1,6 @@
 # Vibe Lab Junior
 
-A session-only creative coding toy that lets children ages 9–11 describe, play, and safely revise tiny browser projects.
+A creative coding toy that lets children ages 9–11 describe, play, safely revise, and explicitly save tiny browser projects on the current device.
 
 ## Run & Operate
 
@@ -17,7 +17,7 @@ A session-only creative coding toy that lets children ages 9–11 describe, play
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- Persistence: none; current projects stay in browser memory
+- Persistence: no server storage; users can explicitly save projects locally on the current device
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
@@ -41,6 +41,7 @@ A session-only creative coding toy that lets children ages 9–11 describe, play
 - Create a tiny playable project from one idea.
 - Add, change, or fix one thing at a time while preserving the accepted project on failure.
 - Read short learning notes and optionally inspect the generated code.
+- Save and reopen projects locally on the current device without an account.
 - Start over without storing personal information or project history.
 
 ## User preferences

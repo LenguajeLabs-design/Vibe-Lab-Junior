@@ -45,5 +45,5 @@ pnpm run typecheck
 - The server validates size, shape, and blocked APIs before returning a project.
 - The browser renders accepted code only in `iframe srcdoc` with `sandbox="allow-scripts"`.
 - The iframe CSP blocks network requests, external assets, forms, frames, objects, and navigation.
-- Projects and prompts are session-only and are not stored in a database.
+- Prompts and projects are not stored on the server. A child can explicitly save a project in the browser on the current device; no account or database is used.
 - The model key is never sent to the browser or included in API responses.
