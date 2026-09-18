@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Safe, session-only creative project generation
 paths:
   /healthz:
     get:
@@ -24,6 +26,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /projects/generate:
+    post:
+      operationId: generateProject
+      tags: [projects]
+      summary: Generate or update a tiny playable project
+      description: Creates a safe HTML, CSS, and browser JavaScript project from a child-friendly idea.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectGenerationRequest"
+      responses:
+        "200":
+          description: Accepted playable project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectGenerationResponse"
+        "400":
+          description: Invalid request or rejected project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Generation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +72,76 @@ components:
           type: string
       required:
         - status
+    LearningNote:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 40
+        explanation:
+          type: string
+          minLength: 1
+          maxLength: 180
+      required: [label, explanation]
+    Project:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 60
+        summary:
+          type: string
+          minLength: 1
+          maxLength: 240
+        html:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        css:
+          type: string
+          maxLength: 20000
+        js:
+          type: string
+          maxLength: 40000
+        learningNotes:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/LearningNote"
+      required: [title, summary, html, css, js, learningNotes]
+    ProjectGenerationRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [create, add, change, fix]
+        idea:
+          type: string
+          minLength: 1
+          maxLength: 1200
+        currentProject:
+          anyOf:
+            - $ref: "#/components/schemas/Project"
+            - type: "null"
+      required: [action, idea]
+    ProjectGenerationResponse:
+      type: object
+      properties:
+        project:
+          $ref: "#/components/schemas/Project"
+        warnings:
+          type: array
+          items:
+            type: string
+            maxLength: 180
+      required: [project, warnings]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
 
