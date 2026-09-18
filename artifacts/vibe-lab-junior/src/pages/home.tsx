@@ -185,7 +185,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="w-full bg-card rounded-[2rem] shadow-xl p-6 md:p-8 border-4 border-white relative">
+            <div className="w-full bg-card rounded-[2rem] shadow-xl p-6 md:p-8 border-4 border-card-border relative">
               <label htmlFor="idea" className="block text-2xl font-bold text-foreground mb-4">
                 What should we make?
               </label>
@@ -251,7 +251,7 @@ export default function Home() {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
-              <div className="w-32 h-32 bg-white rounded-3xl shadow-xl border-4 border-primary/20 flex items-center justify-center relative z-10 animate-bounce">
+              <div className="w-32 h-32 bg-card rounded-3xl shadow-xl border-4 border-primary/20 flex items-center justify-center relative z-10 animate-bounce">
                 <Wand2 className="w-16 h-16 text-primary animate-pulse" />
               </div>
             </div>
@@ -277,7 +277,7 @@ export default function Home() {
             className="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden"
           >
             <DialogPrimitive.Root open={explanationVisible} onOpenChange={setExplanationVisible}>
-            <header className="flex-none p-4 md:px-6 bg-white border-b-2 border-border shadow-sm flex items-center justify-between z-20">
+            <header className="flex-none p-4 md:px-6 bg-card border-b-2 border-border shadow-sm flex items-center justify-between z-20">
               <div className="flex items-center gap-3 min-w-0">
                 <img
                   src={LOGO_URL}
@@ -314,7 +314,7 @@ export default function Home() {
               </div>
 
               {/* Toolbar */}
-              <div className="flex-none w-full flex flex-col gap-4 bg-white p-4 sm:p-5 rounded-3xl border-2 border-border shadow-sm">
+              <div className="flex-none w-full flex flex-col gap-4 bg-card p-4 sm:p-5 rounded-3xl border-2 border-border shadow-sm">
                 {!selectedAction ? (
                   <>
                     <h2 className="text-lg font-bold text-foreground">What next?</h2>
