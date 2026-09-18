@@ -51,6 +51,8 @@ const LOADING_MESSAGES = [
   "Almost there!"
 ];
 
+const LOGO_URL = `${import.meta.env.BASE_URL}logo-vlj.png`;
+
 export default function Home() {
   const { toast } = useToast();
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -156,12 +158,14 @@ export default function Home() {
             exit={{ opacity: 0, scale: 0.95 }}
             className="flex-1 flex flex-col items-center justify-center p-6 max-w-3xl mx-auto w-full"
           >
-            <div className="text-center space-y-4 mb-12">
-              <div className="inline-flex items-center justify-center p-4 bg-primary/10 text-primary rounded-full mb-2">
-                <Sparkles className="w-12 h-12" />
-              </div>
-              <h1 className="text-5xl md:text-6xl font-extrabold text-foreground tracking-tight">
-                Vibe Lab Junior
+            <div className="text-center space-y-4 mb-10">
+              <h1>
+                <img
+                  src={LOGO_URL}
+                  alt="Vibe Lab Junior"
+                  className="w-full max-w-[520px] h-auto mx-auto"
+                  data-testid="img-brand-logo"
+                />
               </h1>
               <p className="text-xl md:text-2xl text-foreground/70 font-medium">
                 Turn your ideas into tiny, playable projects.
@@ -257,12 +261,15 @@ export default function Home() {
             className="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden"
           >
             <header className="flex-none p-4 md:px-6 bg-white border-b-2 border-border shadow-sm flex items-center justify-between z-20">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary text-primary-foreground p-2 rounded-xl">
-                  <Sparkles className="w-6 h-6" />
-                </div>
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src={LOGO_URL}
+                  alt=""
+                  className="h-9 sm:h-11 w-auto max-w-[180px] object-contain object-left"
+                  data-testid="img-header-logo"
+                />
                 <div>
-                  <h1 className="text-xl font-bold text-foreground leading-tight">{currentProject.title}</h1>
+                  <h1 className="hidden md:block text-xl font-bold text-foreground leading-tight truncate">{currentProject.title}</h1>
                 </div>
               </div>
               <div className="flex items-center gap-3">
