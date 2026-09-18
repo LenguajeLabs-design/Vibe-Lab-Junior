@@ -6,12 +6,13 @@ import {
 } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
+import { ToastAction } from '@/components/ui/toast';
 import { ProjectViewer } from '@/components/project-viewer';
 import { LearningExplanation } from '@/components/learning-notes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Wand2, Info, RefreshCw, Lightbulb, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 
 const EXAMPLES = [
   "A game where a cat catches stars",
@@ -108,6 +109,11 @@ export default function Home() {
         toast({
           title: "The helper needs another try",
           description: "I couldn’t make that project yet. Try saying it another way.",
+          action: (
+            <ToastAction altText={`Use example: ${EXAMPLES[0]}`} onClick={() => setIdea(EXAMPLES[0])}>
+              Use example
+            </ToastAction>
+          ),
         });
       }
     });
@@ -138,14 +144,14 @@ export default function Home() {
       onError: () => {
         toast({
           title: "Your project is still safe",
-          description: "I couldn’t make that update yet. Try saying it another way.",
+          description: `I couldn’t make that update yet. Try something simple, like “Add a score counter.”`,
         });
       }
     });
   };
 
   const startOver = () => {
-    if (window.confirm("Are you sure you want to start a new project? This one will be lost!")) {
+    if (window.confirm("Start a new project? Your current project will close.")) {
       setCurrentProject(null);
       setIdea("");
       setUpdateIdea("");
@@ -252,6 +258,9 @@ export default function Home() {
             <h2 className="mt-12 text-3xl font-bold text-foreground">
               {LOADING_MESSAGES[loadingStep]}
             </h2>
+            <p className="mt-3 text-lg font-medium text-muted-foreground">
+              Making your project — this may take a moment.
+            </p>
             <div className="mt-6 flex gap-2">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="w-3 h-3 rounded-full bg-primary" style={{ animation: `bounce 1s infinite ${i * 0.2}s` }} />
@@ -267,6 +276,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             className="flex-1 flex flex-col w-full h-[100dvh] overflow-hidden"
           >
+            <DialogPrimitive.Root open={explanationVisible} onOpenChange={setExplanationVisible}>
             <header className="flex-none p-4 md:px-6 bg-white border-b-2 border-border shadow-sm flex items-center justify-between z-20">
               <div className="flex items-center gap-3 min-w-0">
                 <img
@@ -290,23 +300,13 @@ export default function Home() {
                   <RefreshCw className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Start over</span>
                 </Button>
-                <Button 
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setExplanationVisible(true)}
-                  className="font-bold rounded-xl"
-                  data-testid="button-see-how"
-                >
-                  <Lightbulb className="w-5 h-5 sm:mr-2" />
-                  <span className="hidden sm:inline">See how it works</span>
-                </Button>
               </div>
             </header>
 
             <main className="flex-1 relative p-3 sm:p-4 lg:p-6 bg-muted/30 overflow-y-auto flex flex-col gap-4 lg:gap-6">
               
               {/* Project display */}
-              <div className="flex-none w-full h-[70vh] min-h-[520px] max-h-[820px] relative">
+              <div className="flex-none w-full h-[clamp(360px,52vh,460px)] md:h-[clamp(480px,55vh,620px)] relative">
                 <ProjectViewer 
                   project={currentProject} 
                   isUpdating={isGenerating} 
@@ -314,16 +314,16 @@ export default function Home() {
               </div>
 
               {/* Toolbar */}
-              <div className="flex-none w-full flex flex-col gap-4 bg-white p-5 rounded-3xl border-4 border-border shadow-md">
+              <div className="flex-none w-full flex flex-col gap-4 bg-white p-4 sm:p-5 rounded-3xl border-2 border-border shadow-sm">
                 {!selectedAction ? (
                   <>
                     <h2 className="text-lg font-bold text-foreground">What next?</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
                       {(Object.keys(UPDATE_COPY) as UpdateAction[]).map((action) => (
                         <Button
                           key={action}
                           variant={action === 'change' ? 'accent' : action === 'fix' ? 'outline' : 'default'}
-                          className="w-full justify-start rounded-xl font-bold"
+                          className="w-full min-h-14 justify-start rounded-xl font-bold focus-visible:ring-4 focus-visible:ring-ring/40"
                           onClick={() => setSelectedAction(action)}
                           disabled={isGenerating}
                           data-testid={`button-${action}`}
@@ -332,6 +332,17 @@ export default function Home() {
                           {UPDATE_COPY[action].title}
                         </Button>
                       ))}
+                      <DialogPrimitive.Trigger asChild>
+                        <Button
+                          variant="secondary"
+                          className="w-full min-h-14 justify-start rounded-xl font-bold focus-visible:ring-4 focus-visible:ring-ring/40"
+                          disabled={isGenerating}
+                          data-testid="button-see-how"
+                        >
+                          <Lightbulb className="w-5 h-5 mr-3" aria-hidden="true" />
+                          See how it works
+                        </Button>
+                      </DialogPrimitive.Trigger>
                     </div>
                   </>
                 ) : (
@@ -380,24 +391,9 @@ export default function Home() {
             </main>
 
             {/* Explanation Modal */}
-            <AnimatePresence>
-              {explanationVisible && (
-                <>
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 md:hidden"
-                    onClick={() => setExplanationVisible(false)}
-                  />
-                  <LearningExplanation 
-                    project={currentProject} 
-                    onClose={() => setExplanationVisible(false)} 
-                  />
-                </>
-              )}
-            </AnimatePresence>
+            <LearningExplanation project={currentProject} />
 
+            </DialogPrimitive.Root>
           </motion.div>
         )}
       </AnimatePresence>

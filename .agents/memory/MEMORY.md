@@ -1,0 +1,1 @@
+- [Radix dialog focus restoration](radix-dialog-focus.md) — keep the root mounted and pair Trigger with Content; conditional roots return focus to the page body.

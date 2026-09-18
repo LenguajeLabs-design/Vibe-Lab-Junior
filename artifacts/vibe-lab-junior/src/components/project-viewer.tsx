@@ -52,7 +52,7 @@ export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
 
   return (
     <div 
-      className="relative w-full h-full bg-white rounded-3xl overflow-hidden border-4 border-white shadow-[0px_8px_24px_rgba(35,50,80,0.1)] isolate"
+      className="relative w-full h-full bg-white rounded-3xl overflow-hidden border-2 border-white shadow-[0px_6px_18px_rgba(35,50,80,0.09)] isolate"
       data-testid="project-viewer-container"
     >
       <iframe
