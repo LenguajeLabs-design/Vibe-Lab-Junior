@@ -13,6 +13,37 @@ const attemptsByClient = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 12;
 
+function normalizeProviderResult(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value;
+  const result = value as {
+    project?: {
+      title?: unknown;
+      summary?: unknown;
+      learningNotes?: Array<{ label?: unknown; explanation?: unknown }>;
+    };
+    warnings?: unknown[];
+  };
+
+  if (result.project) {
+    if (typeof result.project.title === "string") result.project.title = result.project.title.slice(0, 60);
+    if (typeof result.project.summary === "string") result.project.summary = result.project.summary.slice(0, 240);
+    if (Array.isArray(result.project.learningNotes)) {
+      result.project.learningNotes = result.project.learningNotes.slice(0, 5).map((note) => ({
+        ...note,
+        label: typeof note.label === "string" ? note.label.slice(0, 40) : note.label,
+        explanation:
+          typeof note.explanation === "string" ? note.explanation.slice(0, 180) : note.explanation,
+      }));
+    }
+  }
+  if (Array.isArray(result.warnings)) {
+    result.warnings = result.warnings.slice(0, 5).map((warning) =>
+      typeof warning === "string" ? warning.slice(0, 180) : warning,
+    );
+  }
+  return result;
+}
+
 function isRateLimited(client: string): boolean {
   const now = Date.now();
   const current = attemptsByClient.get(client);
@@ -44,7 +75,9 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
   if (!useDemo) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        candidate = GenerateProjectResponse.parse(await generateWithProvider(input)) as GenerationResult;
+        candidate = GenerateProjectResponse.parse(
+          normalizeProviderResult(await generateWithProvider(input)),
+        ) as GenerationResult;
         const safetyIssues = validateProjectSafety(candidate.project);
         if (safetyIssues.length > 0) {
           candidate = undefined;

@@ -49,9 +49,24 @@ const spaceToy: PlayableProject = {
   ],
 };
 
+const blockPuzzle: PlayableProject = {
+  title: "Falling Block Builder",
+  summary: "Move and rotate falling shapes to complete rows and score points.",
+  html: `<main class="blocks"><div><h1>Falling Block Builder</h1><p>Complete rows before the blocks reach the top.</p><div class="hud"><span id="score">Score: 0</span><span id="status">Playing</span></div></div><canvas id="board" width="300" height="540"></canvas><div class="controls"><button id="left">◀ Left</button><button id="turn">↻ Turn</button><button id="right">Right ▶</button><button id="down">▼ Drop</button></div><p>Keyboard: arrows to move, ↑ to rotate.</p></main>`,
+  css: `*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;background:linear-gradient(135deg,#211653,#4936a7);color:#fff}.blocks{min-height:100vh;display:grid;place-items:center;align-content:center;gap:12px;padding:18px;text-align:center}h1{margin:0;font-size:clamp(28px,6vw,48px)}p{margin:4px}.hud{display:flex;justify-content:center;gap:24px;font-weight:900}canvas{width:min(78vw,300px);height:auto;max-height:58vh;background:#0d1230;border:5px solid #fff;border-radius:14px;box-shadow:0 10px 0 #0004}.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(94vw,520px)}button{border:0;border-radius:14px;padding:13px 8px;background:#ffd84a;color:#211653;font:900 16px system-ui;box-shadow:0 5px 0 #e58b2a;cursor:pointer}button:active{transform:translateY(3px);box-shadow:0 2px 0 #e58b2a}`,
+  js: `const canvas=document.querySelector('#board'),ctx=canvas.getContext('2d'),scoreEl=document.querySelector('#score'),statusEl=document.querySelector('#status'),cols=10,rows=18,size=30,colors=['#0000','#ff4f81','#55d6ff','#ffd84a','#8d73ff','#63df8d','#ff934f','#ef63e8'];let grid=Array.from({length:rows},()=>Array(cols).fill(0)),score=0,last=0,over=false;const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];function piece(){const n=1+Math.floor(Math.random()*7);return{x:3,y:0,c:n,s:shapes[n-1]}}let active=piece();function hit(p,dx=0,dy=0,s=p.s){return s.some((row,y)=>row.some((v,x)=>v&&(p.x+x+dx<0||p.x+x+dx>=cols||p.y+y+dy>=rows||p.y+y+dy>=0&&grid[p.y+y+dy][p.x+x+dx])))}function merge(){active.s.forEach((row,y)=>row.forEach((v,x)=>{if(v&&active.y+y>=0)grid[active.y+y][active.x+x]=active.c}));let cleared=0;grid=grid.filter(row=>{if(row.every(Boolean)){cleared++;return false}return true});while(grid.length<rows)grid.unshift(Array(cols).fill(0));score+=cleared*100;scoreEl.textContent='Score: '+score;active=piece();if(hit(active)){over=true;statusEl.textContent='Game over — refresh to retry'}}function move(dx,dy){if(over)return;if(!hit(active,dx,dy)){active.x+=dx;active.y+=dy}else if(dy)merge();draw()}function turn(){if(over)return;const rotated=active.s[0].map((_,i)=>active.s.map(row=>row[i]).reverse());if(!hit(active,0,0,rotated))active.s=rotated;draw()}function drawCell(x,y,c){ctx.fillStyle=colors[c];ctx.fillRect(x*size+2,y*size+2,size-4,size-4);ctx.strokeStyle='#ffffff55';ctx.strokeRect(x*size+2,y*size+2,size-4,size-4)}function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);grid.forEach((row,y)=>row.forEach((v,x)=>v&&drawCell(x,y,v)));active.s.forEach((row,y)=>row.forEach((v,x)=>v&&drawCell(active.x+x,active.y+y,active.c)))}function loop(t){if(!over&&t-last>650){move(0,1);last=t}requestAnimationFrame(loop)}addEventListener('keydown',e=>{if(e.key==='ArrowLeft')move(-1,0);if(e.key==='ArrowRight')move(1,0);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowUp')turn()});document.querySelector('#left').addEventListener('click',()=>move(-1,0));document.querySelector('#right').addEventListener('click',()=>move(1,0));document.querySelector('#down').addEventListener('click',()=>move(0,1));document.querySelector('#turn').addEventListener('click',turn);draw();requestAnimationFrame(loop);`,
+  learningNotes: [
+    { label: "Grid", explanation: "The board is a grid where each number stores an empty space or a colored block." },
+    { label: "Collision checks", explanation: "Before moving, the game checks walls, the floor, and blocks already on the board." },
+    { label: "Completed rows", explanation: "A full row disappears, new empty rows are added at the top, and the score grows." },
+  ],
+};
+
 export function getDemoResult(input: GenerationInput): GenerationResult {
   const text = input.idea.toLowerCase();
-  let project = text.includes("quiz") || text.includes("ocean")
+  let project = text.includes("tetris") || text.includes("falling block") || text.includes("block puzzle")
+    ? blockPuzzle
+    : text.includes("quiz") || text.includes("ocean")
     ? quiz
     : text.includes("space") || text.includes("planet")
       ? spaceToy
