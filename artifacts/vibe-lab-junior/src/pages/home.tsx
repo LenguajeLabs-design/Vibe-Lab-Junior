@@ -303,10 +303,10 @@ export default function Home() {
               </div>
             </header>
 
-            <main className="flex-1 relative p-3 sm:p-4 xl:p-6 bg-muted/30 overflow-y-auto xl:overflow-hidden flex flex-col xl:flex-row gap-4 xl:gap-6">
+            <main className="flex-1 relative p-3 sm:p-4 lg:p-6 bg-muted/30 overflow-y-auto flex flex-col gap-4 lg:gap-6">
               
               {/* Project display */}
-              <div className="flex-none xl:flex-1 w-full h-[62vh] min-h-[420px] xl:h-full xl:min-h-0 relative">
+              <div className="flex-none w-full h-[70vh] min-h-[520px] max-h-[820px] relative">
                 <ProjectViewer 
                   project={currentProject} 
                   isUpdating={isGenerating} 
@@ -314,11 +314,11 @@ export default function Home() {
               </div>
 
               {/* Toolbar */}
-              <div className="flex-none w-full xl:w-80 2xl:w-96 flex flex-col gap-4 bg-white p-5 rounded-3xl border-4 border-border shadow-md">
+              <div className="flex-none w-full flex flex-col gap-4 bg-white p-5 rounded-3xl border-4 border-border shadow-md">
                 {!selectedAction ? (
                   <>
                     <h2 className="text-lg font-bold text-foreground">What next?</h2>
-                    <div className="grid grid-cols-1 gap-3 mt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                       {(Object.keys(UPDATE_COPY) as UpdateAction[]).map((action) => (
                         <Button
                           key={action}
