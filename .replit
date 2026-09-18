@@ -18,3 +18,10 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+MODEL_API_URL = "https://api.anthropic.com/v1/messages"
+MODEL_NAME = "claude-sonnet-4-5"
+MODEL_PROVIDER = "anthropic"
