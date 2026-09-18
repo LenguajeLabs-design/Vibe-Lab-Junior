@@ -62,7 +62,16 @@ export default function Home() {
   const [explanationVisible, setExplanationVisible] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   
-  const generateProject = useGenerateProject();
+  const generateProject = useGenerateProject({
+    mutation: {
+      retry: (failureCount, error) => {
+        const status = (error as { status?: number }).status;
+        const isTransient = status == null || status >= 500;
+        return isTransient && failureCount < 2;
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 3000),
+    },
+  });
   const isGenerating = generateProject.isPending;
 
   // Cycle loading messages
@@ -97,9 +106,8 @@ export default function Home() {
       },
       onError: () => {
         toast({
-          title: "Oops!",
-          description: "Something went wrong while making your project. Let's try again!",
-          variant: "destructive"
+          title: "The helper needs another try",
+          description: "I couldn’t make that project yet. Try saying it another way.",
         });
       }
     });
@@ -129,9 +137,8 @@ export default function Home() {
       },
       onError: () => {
         toast({
-          title: "Oops!",
-          description: "Something went wrong. Your project is safe, try asking differently!",
-          variant: "destructive"
+          title: "Your project is still safe",
+          description: "I couldn’t make that update yet. Try saying it another way.",
         });
       }
     });
