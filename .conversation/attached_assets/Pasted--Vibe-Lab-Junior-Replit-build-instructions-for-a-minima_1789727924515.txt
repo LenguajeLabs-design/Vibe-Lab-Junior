@@ -1,0 +1,644 @@
+# Vibe Lab Junior
+
+## Replit build instructions for a minimal Grade 4–5 vibe-coding app
+
+**Audience:** Children ages 9–11  
+**Goal:** A child describes a small game or interactive project in ordinary language, plays the result immediately, and makes simple follow-up changes without needing to read or write code.
+
+This is the product brief, technical plan, safety baseline, implementation plan, and Replit Agent prompt for the first version.
+
+### Repository context
+
+The project repository is:
+
+<https://github.com/LenguajeLabs-design/Vibe-Lab-Junior>
+
+This repository is newly formed and currently empty. Initialize the Vibe Lab Junior project from scratch in this repository. Do not assume that an existing frontend, backend, package configuration, database, authentication system, or deployment setup already exists.
+
+---
+
+## 1. Product vision
+
+Vibe Lab Junior should make coding feel like making something.
+
+The child starts with an idea:
+
+> Make a game where a penguin catches falling ice cream.
+
+The app turns the idea into a small playable HTML/CSS/JavaScript project. The child can play it, then ask for one of four things:
+
+1. **Add something** — add a feature or object.
+2. **Change something** — change a color, character, speed, theme, or rule.
+3. **Fix something** — describe what is broken.
+4. **See how it works** — reveal a short, friendly explanation of the generated code.
+
+The app should feel closer to a creative toy than an IDE. Code is a learning layer available when the child is curious, not a wall they must climb before creating.
+
+### Principles
+
+- **Idea first:** The first screen asks one question.
+- **One clear action:** There is one primary button: “Make it”.
+- **Immediate reward:** The child sees a playable result quickly.
+- **Small steps:** Follow-up actions make one understandable change at a time.
+- **Friendly language:** Use concrete words, examples, icons, and short sentences.
+- **Private by default:** Projects stay in the current browser session.
+- **Safe execution:** AI-generated code runs only inside a restricted browser frame.
+
+---
+
+## 2. Ultra-simple UX
+
+### Screen A: Make something
+
+Show only:
+
+- Title: **What should we make?**
+- Large multiline text box.
+- Three examples:
+  - “A game where a cat catches stars”
+  - “A quiz about ocean animals”
+  - “A space button that makes planets move”
+- One large primary button: **✨ Make it**
+- A small privacy note: “Your idea is sent to the app’s helper to make your project.”
+
+Do not show code, model settings, token counts, API keys, or technical configuration here.
+
+### Screen B: Play
+
+After generation, replace the form with:
+
+- A large playable project area.
+- Project title and a **Start over** button.
+- Four large action buttons:
+  - **➕ Add something**
+  - **🎨 Change something**
+  - **🔧 Fix something**
+  - **👀 See how it works**
+
+The project is the visual focus. Keep controls below it or in a simple toolbar.
+
+### Follow-up actions
+
+When the child chooses Add, Change, or Fix:
+
+1. Show one focused question.
+2. Show one text box.
+3. Show one button: **Update my project**.
+4. Keep the previous project visible until the new version succeeds.
+5. If generation fails, preserve the old version and explain the problem kindly.
+
+Do not create a general-purpose chat interface in the MVP.
+
+### “See how it works”
+
+Open a simple panel or modal with:
+
+- A one- or two-sentence explanation.
+- Three to five notes tied to real project behavior, such as:
+  - “This part listens for the arrow keys.”
+  - “This number controls how fast the star moves.”
+  - “This function gives you points.”
+- Optional collapsible code sections labelled “The player”, “The game rules”, and “The colors”.
+
+Generate the explanation from returned project metadata. Do not expose system prompts, secrets, or server details.
+
+---
+
+## 3. MVP scope
+
+### Include
+
+- One-page responsive web app.
+- Idea input and examples.
+- AI generation of one small interactive project.
+- Playable preview in a restricted iframe.
+- The four core actions.
+- Loading, success, and error states.
+- Basic request and output validation.
+- Server-side AI call so the provider key never reaches the browser.
+- Local Start over action.
+- In-memory or browser-only current-session state.
+- Deterministic fallback projects for development and provider failures.
+
+### Defer
+
+- Child accounts, profiles, or social features.
+- Public galleries or share links.
+- Persistent databases.
+- Image uploads and arbitrary asset uploads.
+- External plugins and tool use.
+- Multiplayer or voice input.
+- A full code editor.
+- Arbitrary Python, Node, shell, or server-side code generation.
+- Automatic web browsing by the model.
+- Advertising or behavioral analytics.
+
+The first success metric is: **Can a 9-year-old make and play a tiny project in under two minutes?**
+
+---
+
+## 4. Suggested Replit stack
+
+Use the smallest stack that is easy to understand and debug:
+
+- **Runtime:** Node.js
+- **Server:** Express
+- **Frontend:** Plain HTML, CSS, and browser JavaScript
+- **AI integration:** Server-side JavaScript SDK or HTTPS client for the selected model provider
+- **Validation:** Zod, JSON Schema, or a small hand-written validator
+- **Testing:** Node’s built-in test runner or Vitest
+- **Styling:** One CSS file; no UI framework required
+- **Persistence:** None at first; browser memory or `sessionStorage` only if needed
+
+Keep dependencies few. Do not add a database, authentication provider, CSS framework, or component library unless the basic flow genuinely needs one.
+
+Replit setup:
+
+- Store the model provider key in Replit **Secrets**, never in frontend code or a committed file.
+- Keep the server run command and port configuration simple and documented.
+- Build in small checkpoints so each working stage can be reviewed before the next one.
+
+References: [Replit Agent prompting guidance](https://docs.replit.com/tutorials) and [Replit Project Editor and Secrets](https://docs.replit.com/references/editor/editor-and-tools).
+
+---
+
+## 5. Technical architecture
+
+```text
+Child browser
+    |
+    | POST /api/projects/generate
+    v
+Express server on Replit
+    | validate request, apply limits, build prompt
+    | call model provider using server-side secret
+    v
+AI model provider
+    | strict JSON response
+    v
+Express server
+    | parse, validate, safety-check
+    v
+Child browser
+    | render accepted HTML/CSS/JS in iframe sandbox
+    v
+Playable project
+```
+
+### Endpoints
+
+#### `GET /api/health`
+
+Return a small health response for development and deployment checks. Never reveal secrets or provider details.
+
+#### `POST /api/projects/generate`
+
+Request:
+
+```json
+{
+  "action": "create",
+  "idea": "Make a game where a penguin catches falling ice cream",
+  "currentProject": null
+}
+```
+
+Allowed actions: `create`, `add`, `change`, and `fix`.
+
+Response:
+
+```json
+{
+  "project": {
+    "title": "Penguin Ice Cream Catch",
+    "summary": "Move the penguin to catch falling ice cream and earn points.",
+    "html": "<main>...</main>",
+    "css": "...",
+    "js": "...",
+    "learningNotes": [
+      {
+        "label": "Keyboard controls",
+        "explanation": "The key listener moves the penguin left and right."
+      }
+    ]
+  },
+  "warnings": []
+}
+```
+
+Render only after the server accepts the response.
+
+---
+
+## 6. Secure API-key handling
+
+The browser must never receive the model provider key.
+
+Required rules:
+
+- Put the key in a Replit Secret, for example `MODEL_API_KEY`.
+- Read it only in server-side code through `process.env.MODEL_API_KEY`.
+- Never place it in `public/`, HTML, CSS, browser JavaScript, a JSON response, a prompt, a log, or a Git commit.
+- Add `.env` and local secret files to `.gitignore`.
+- Fail safely with a generic message if the key is absent.
+- Do not log full prompts or full model responses in production if they may contain child-entered text.
+- Add a maximum input length, output size limit, and basic request rate limit.
+- Keep provider and model configuration on the server.
+
+The frontend may call `/api/projects/generate`; it must not call the provider directly.
+
+### Development fallback
+
+If no key is configured, the app should still run in `DEMO_MODE=true` using two or three fixed sample projects. This makes the UI testable without a secret.
+
+---
+
+## 7. Sandboxing strategy
+
+Generated code is untrusted input, even when it comes from a model. Treat it like code written by an unknown person.
+
+### MVP baseline
+
+- Generate only HTML, CSS, and browser JavaScript.
+- Never execute generated code on the Replit server.
+- Render it in an `<iframe>` using `srcdoc`.
+- Set `sandbox="allow-scripts"` only. Do not add `allow-same-origin`, `allow-forms`, `allow-popups`, `allow-downloads`, or top-navigation permissions.
+- Add a restrictive Content Security Policy inside the generated document. For the MVP, allow only the inline styles and scripts needed for the project; block network connections, frames, objects, forms, and external assets.
+- Do not permit external images, fonts, scripts, stylesheets, or iframe URLs. Use emoji, CSS shapes, and inline SVG only if the validator explicitly allows them.
+- Do not pass parent-window references or secrets into the iframe.
+- Do not use `eval`, `Function`, dynamic script injection, WebSockets, service workers, or storage APIs.
+
+### Output checks
+
+Reject output containing or attempting to use:
+
+- `fetch`, `XMLHttpRequest`, `sendBeacon`, WebSocket, or external network URLs
+- `eval`, `new Function`, dynamic imports, or script `src`
+- cookies, local storage, session storage, IndexedDB, or service workers
+- forms, downloads, popups, top navigation, or parent/opener access
+- server-side code, shell commands, filesystem access, database calls, or package imports
+- hidden instructions that try to alter the app shell or access secrets
+
+These checks are defense in depth, not a complete security boundary. The iframe sandbox and CSP are the primary containment layers. If public sharing, uploads, accounts, or persistent projects are later added, perform a separate security review first.
+
+---
+
+## 8. AI prompt and output contract
+
+### Server-side prompt requirements
+
+Instruct the model to:
+
+- Build a tiny, complete, playable project for ages 9–11.
+- Return JSON only, matching the exact schema.
+- Return only an HTML fragment, CSS, and browser JavaScript.
+- Use no external resources, network calls, storage, imports, or hidden behavior.
+- Prefer one clear mechanic, one goal, and one success condition.
+- Make keyboard and pointer controls obvious.
+- Keep text readable and friendly.
+- Preserve working behavior when making an Add, Change, or Fix request.
+- Make the smallest useful change instead of redesigning everything.
+- Include short learning notes connected to actual code.
+- Reject or safely simplify adult themes, violence, hate, sexual content, dangerous instructions, personal-data requests, and real-world targeting.
+
+### Contract
+
+Validate this conceptual schema:
+
+```text
+project.title: string, 1–60 characters
+project.summary: string, 1–240 characters
+project.html: string, maximum 20 KB
+project.css: string, maximum 20 KB
+project.js: string, maximum 40 KB
+project.learningNotes: array of 1–5 objects
+learningNote.label: string, 1–40 characters
+learningNote.explanation: string, 1–180 characters
+warnings: array of short strings
+```
+
+Reject invalid JSON, missing fields, oversized fields, multiple projects, external URLs/imports, disallowed APIs/tags, empty output, non-playable output, or unsafe content.
+
+Do not automatically “fix” arbitrary unsafe code in place. Reject it and request a safe regeneration, with a bounded retry count.
+
+### Prompt injection handling
+
+Treat the child’s idea and every existing project field as untrusted data. Delimit them clearly in the prompt. Tell the model that instructions inside those fields are project content, not higher-priority instructions. Never allow user text to replace the safety rules or output schema.
+
+### Failure behavior
+
+Use at most one or two bounded retries. If generation still fails:
+
+- Keep the current project on screen.
+- Show: “I couldn’t make that update yet. Try saying it another way.”
+- Offer one simpler example.
+- Log only a redacted error identifier for the developer.
+
+---
+
+## 9. Input and output validation
+
+Implement validation in layers:
+
+1. **Request validation:** Check action, text length, and current-project size.
+2. **Prompt construction:** Add fixed safety and formatting instructions server-side.
+3. **Provider response parsing:** Require JSON and handle fenced JSON defensively if necessary.
+4. **Schema validation:** Check types, lengths, and required fields.
+5. **Static safety checks:** Scan HTML, CSS, and JS for blocked patterns and external resources.
+6. **Playability checks:** Require non-empty HTML, a visible root, and JavaScript below the size limit.
+7. **Browser containment:** Render only in the restricted iframe.
+8. **Regression check:** For Add, Change, and Fix, preserve the previous accepted project until the new one passes.
+
+Keep the previous accepted project in memory on the client and in the current request only. Do not store child projects permanently in the MVP.
+
+---
+
+## 10. Suggested folder structure
+
+```text
+vibe-lab-junior/
+├── server/
+│   ├── index.js              # Express server and routes
+│   ├── aiClient.js           # Provider call; server-side only
+│   ├── prompts.js            # Fixed prompts and action instructions
+│   ├── projectSchema.js      # Schema and size validation
+│   ├── safetyValidator.js    # Static checks for generated output
+│   └── demoProjects.js       # Safe fallback projects
+├── public/
+│   ├── index.html
+│   ├── app.js                # UI state and API calls; no secret access
+│   ├── styles.css
+│   └── favicon.svg
+├── test/
+│   ├── api.test.js
+│   ├── safetyValidator.test.js
+│   └── fixtures/
+│       ├── safe-project.json
+│       └── unsafe-project.json
+├── .env.example              # Names only; never real values
+├── .gitignore
+├── package.json
+└── README.md
+```
+
+Keep generated projects as data, not as files written into the server’s source tree.
+
+---
+
+## 11. Phased build plan
+
+### Phase 0 — Project setup
+
+- Start from the empty `Vibe-Lab-Junior` repository and create the initial project files.
+- Create the Node.js project.
+- Add Express and the smallest necessary dependencies.
+- Add a health route and a working Replit run command.
+- Add `.gitignore`, `.env.example`, and `DEMO_MODE` behavior.
+
+**Checkpoint:** The app opens in Replit and the health route works.
+
+### Phase 1 — Static child-facing experience
+
+- Build Screen A and Screen B with a hard-coded demo project.
+- Implement the four action buttons.
+- Implement loading, error, and Start over states.
+- Make the layout usable on laptop, tablet, and phone widths.
+
+**Checkpoint:** A child can click through the full experience without an AI key.
+
+### Phase 2 — Restricted project renderer
+
+- Render the demo project inside the sandboxed iframe.
+- Add CSP and no-network policy.
+- Add validator and unsafe fixture tests.
+
+**Checkpoint:** Safe demo projects play; unsafe fixtures are rejected.
+
+### Phase 3 — Server-side AI generation
+
+- Add the provider client on the server.
+- Add the strict prompt and JSON contract.
+- Add request limits and bounded retries.
+- Add schema validation and output checks.
+- Keep `DEMO_MODE` available as a fallback.
+
+**Checkpoint:** Create, Add, Change, and Fix each produce or preserve a valid project.
+
+### Phase 4 — Learning layer and polish
+
+- Add “See how it works”.
+- Improve child-friendly wording and error messages.
+- Add keyboard focus states and visible labels.
+- Test representative Grade 4–5 ideas.
+
+**Checkpoint:** A first-time user can make a project without adult technical help.
+
+### Phase 5 — Small supervised pilot
+
+- Test with a small number of supervised users.
+- Observe where children hesitate, misread controls, or ask for help.
+- Improve prompts and examples before adding features.
+- Do not add public sharing or accounts during the pilot unless separately reviewed.
+
+---
+
+## 12. Acceptance tests
+
+### Core experience
+
+- [ ] A child sees one clear question on first load.
+- [ ] Make it is obvious and keyboard accessible.
+- [ ] Empty input gives a friendly prompt instead of an API call.
+- [ ] A valid idea produces a playable project or safe demo fallback.
+- [ ] The project is visually larger than the controls.
+- [ ] Start over returns to the initial screen without a full reload.
+
+### Four actions
+
+- [ ] Add something asks what to add and preserves the previous project on failure.
+- [ ] Change something asks what to change and makes a bounded update.
+- [ ] Fix something asks what is broken and does not erase a working project if repair fails.
+- [ ] See how it works shows plain-language notes and relevant code only.
+- [ ] The app does not present a general chat feed.
+
+### Safety and privacy
+
+- [ ] No provider key appears in browser source, network responses, or logs.
+- [ ] The browser talks only to the app server for generation.
+- [ ] Generated code runs only in a sandboxed iframe.
+- [ ] Unsafe fixture output is rejected.
+- [ ] External scripts, images, fonts, network calls, storage, popups, and parent access are blocked or rejected.
+- [ ] No child name, email, location, school, or account is required.
+- [ ] Child-entered ideas are not permanently stored by the MVP.
+- [ ] No public gallery, social feed, or unmoderated sharing exists.
+
+### Quality
+
+- [ ] The app works at narrow mobile width and normal laptop width.
+- [ ] Focus states are visible and contrast is readable.
+- [ ] Buttons have text labels, not icons alone.
+- [ ] Loading states do not imply that the child did something wrong.
+- [ ] Demo mode works without a provider key.
+
+---
+
+## 13. Child-safety and privacy constraints
+
+The app is intended for children, so the MVP should collect as little information as possible.
+
+- Do not ask for a child’s real name, age, email, school, location, photo, or voice.
+- Do not offer open-ended messaging with other users.
+- Do not add public sharing by default.
+- Do not use advertising or behavioral profiling.
+- Avoid retaining prompts or generated projects unless an adult-controlled feature is added later.
+- Add a short, understandable privacy note near the input.
+- Keep generated content age-appropriate and reject unsafe requests.
+- Provide a simple way for a supervising adult to stop or reset the session.
+- For a school or public deployment, review applicable child-privacy, consent, retention, and accessibility requirements with the responsible adult or organization before collecting anything.
+
+The model is not the safety boundary. The server’s validation, iframe sandbox, CSP, rate limits, and privacy defaults are the safety boundary.
+
+---
+
+## 14. Copy-paste prompt for Replit Agent
+
+Paste this as the initial Replit Agent request. Ask Agent to build in checkpoints and review each checkpoint before continuing.
+
+```text
+Build a minimal full-stack web app called “Vibe Lab Junior” for children ages 9–11.
+
+REPOSITORY CONTEXT
+This Replit project is connected to the newly formed GitHub repository:
+https://github.com/LenguajeLabs-design/Vibe-Lab-Junior
+
+The repository is currently empty. Initialize the entire project from scratch in the current Replit workspace. Do not assume there is an existing app, frontend, backend, package.json, database, authentication system, or deployment configuration.
+
+PRODUCT GOAL
+The child types an idea such as “Make a game where a penguin catches falling ice cream.” The app generates a tiny playable HTML/CSS/JavaScript project. After creation, the child can use exactly four core actions:
+1. Add something
+2. Change something
+3. Fix something
+4. See how it works
+
+The experience must feel like a simple creative toy, not an IDE or chat app.
+
+STACK
+- Node.js
+- Express
+- Plain HTML, CSS, and browser JavaScript
+- Keep dependencies minimal
+- Use a server-side AI provider client, but make the provider easy to replace
+- Use Replit Secrets for MODEL_API_KEY
+- Support DEMO_MODE=true so the app works without an API key
+
+BUILD IN CHECKPOINTS
+1. Create the project, server, health route, package.json, .gitignore, and .env.example.
+2. Build the child-facing UI with a hard-coded demo project.
+3. Add the restricted iframe renderer and safety validator.
+4. Add the server-side AI generation route and strict JSON contract.
+5. Add the four follow-up actions and “See how it works”.
+6. Run tests and perform a browser smoke test.
+
+Do not add a database, authentication, public gallery, social features, image uploads, voice input, external assets, or a full code editor.
+
+UI REQUIREMENTS
+First screen:
+- Title: “What should we make?”
+- Large multiline text input
+- Three example ideas
+- One primary button: “✨ Make it”
+- A small privacy note
+
+After generation:
+- Large playable project area
+- Title and Start over button
+- Four large labelled buttons: “➕ Add something”, “🎨 Change something”, “🔧 Fix something”, “👀 See how it works”
+- No general chat feed
+
+For Add, Change, and Fix, show one focused question, one text input, and one “Update my project” button. Keep the old project visible until the new one succeeds. If the update fails, preserve the old project and show a kind, child-friendly error.
+
+AI OUTPUT CONTRACT
+The server must request and validate JSON shaped like:
+{
+  "project": {
+    "title": "string",
+    "summary": "string",
+    "html": "HTML fragment string",
+    "css": "CSS string",
+    "js": "browser JavaScript string",
+    "learningNotes": [
+      { "label": "string", "explanation": "string" }
+    ]
+  },
+  "warnings": []
+}
+
+Only allow HTML, CSS, and browser JavaScript. Generated projects must use no external URLs, imports, network calls, storage, cookies, WebSockets, service workers, eval, Function, dynamic imports, forms, downloads, popups, parent/opener access, server code, shell commands, filesystem access, or database calls.
+
+SAFETY AND SANDBOXING
+- Never execute generated code on the server.
+- Render generated projects only in an iframe using srcdoc.
+- Use iframe sandbox="allow-scripts" only. Do not add allow-same-origin, allow-forms, allow-popups, allow-downloads, or top navigation permissions.
+- Put a restrictive CSP in the generated document. Allow only inline styles and scripts needed for the project. Block network connections, external assets, frames, objects, forms, and navigation.
+- Do not pass secrets into the iframe.
+- Validate and reject unsafe output before rendering.
+- Treat child text and existing project fields as untrusted data and delimit them in the server-side prompt.
+
+SECURITY AND PRIVACY
+- Read MODEL_API_KEY only on the server from process.env.MODEL_API_KEY.
+- Never expose the key to the browser, logs, prompts, or JSON responses.
+- Add input length limits, output size limits, a bounded retry count, and basic rate limiting.
+- Do not store child-entered ideas or projects permanently in the MVP.
+- Do not ask for names, email addresses, location, school, photos, or accounts.
+- Include an age-appropriate privacy note.
+
+FOLDER STRUCTURE
+Use:
+server/index.js
+server/aiClient.js
+server/prompts.js
+server/projectSchema.js
+server/safetyValidator.js
+server/demoProjects.js
+public/index.html
+public/app.js
+public/styles.css
+test/api.test.js
+test/safetyValidator.test.js
+test/fixtures/safe-project.json
+test/fixtures/unsafe-project.json
+README.md
+
+TESTS AND ACCEPTANCE
+Add tests for:
+- health route
+- empty or overlong input
+- valid create request
+- Add, Change, and Fix request handling
+- invalid JSON from the model
+- missing required fields
+- oversized output
+- blocked network calls and unsafe APIs
+- preserving the previous project when an update fails
+- DEMO_MODE without an API key
+
+Before finishing, run the tests, start the app, and perform a browser smoke test for the full flow. Make the UI responsive, keyboard accessible, readable, and calm. Use visible focus states and text labels alongside icons.
+
+When you finish each checkpoint, summarize what changed, how it was tested, and any remaining risks. Do not move to the next checkpoint until the current one is working.
+```
+
+---
+
+## 15. Definition of done
+
+Vibe Lab Junior is ready for a first supervised pilot when:
+
+- A child can describe an idea and play a result without seeing technical setup.
+- The four actions are understandable without an adult explanation.
+- The app remains usable when the provider key is missing or the model fails.
+- Generated code is validated and contained before execution.
+- No secret or child identity data reaches the browser or is stored by default.
+- The app has automated tests for the main safety and failure cases.
+- A developer can run it from a clean Replit project using the README and Secrets panel.
+
+After the pilot, ask: **Where did children hesitate, and what is the smallest change that helps them keep creating?**

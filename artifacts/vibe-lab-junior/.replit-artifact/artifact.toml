@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Vibe Lab Junior"
+description = "A playful creative coding app for children ages 9–11. Kids describe a tiny game or interactive idea, play the result safely, and make simple follow-up changes without needing to write code."
+version = "1.0.0"
+id = "artifacts/vibe-lab-junior"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20090
+
+[services.development]
+run = "pnpm --filter @workspace/vibe-lab-junior run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/vibe-lab-junior", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/vibe-lab-junior/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20090"
+BASE_PATH = "/"
