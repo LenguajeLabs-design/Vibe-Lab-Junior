@@ -1,6 +1,15 @@
 import type { PlayableProject } from "./types";
 
 const blockedPatterns: Array<{ pattern: RegExp; reason: string }> = [
+  { pattern: /https?:\/\//i, reason: "external URLs" },
+  { pattern: /(?:src|href)\s*=\s*["']\s*\/\//i, reason: "external resources" },
+  { pattern: /@import\b/i, reason: "external style imports" },
+  { pattern: /\burl\s*\(/i, reason: "external CSS resources" },
+  { pattern: /<\s*\/?\s*script\b/i, reason: "script element injection" },
+  { pattern: /<\s*\/?\s*style\b/i, reason: "style element injection" },
+];
+
+const blockedJavaScriptPatterns: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\bfetch\s*\(/i, reason: "network requests" },
   { pattern: /\bXMLHttpRequest\b/i, reason: "network requests" },
   { pattern: /\bsendBeacon\b/i, reason: "network requests" },
@@ -13,12 +22,6 @@ const blockedPatterns: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\bserviceWorker\b/i, reason: "service workers" },
   { pattern: /\b(?:window\s*\.\s*)?(?:parent|opener|top)\s*\./i, reason: "parent window access" },
   { pattern: /\b(?:window\s*\.\s*open|(?:window\s*\.\s*)?location\s*(?:=|\.))/i, reason: "navigation or popups" },
-  { pattern: /https?:\/\//i, reason: "external URLs" },
-  { pattern: /(?:src|href)\s*=\s*["']\s*\/\//i, reason: "external resources" },
-  { pattern: /@import\b/i, reason: "external style imports" },
-  { pattern: /\burl\s*\(/i, reason: "external CSS resources" },
-  { pattern: /<\s*\/?\s*script\b/i, reason: "script element injection" },
-  { pattern: /<\s*\/?\s*style\b/i, reason: "style element injection" },
 ];
 
 const blockedHtml = [
@@ -41,6 +44,10 @@ export function validateProjectSafety(project: PlayableProject): string[] {
 
   for (const { pattern, reason } of blockedPatterns) {
     if (pattern.test(combined)) issues.push(reason);
+  }
+
+  for (const { pattern, reason } of blockedJavaScriptPatterns) {
+    if (pattern.test(project.js)) issues.push(reason);
   }
 
   for (const tag of blockedHtml) {

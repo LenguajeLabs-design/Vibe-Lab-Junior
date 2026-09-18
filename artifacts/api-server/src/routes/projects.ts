@@ -73,7 +73,7 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
   let candidate: GenerationResult | undefined;
 
   if (!useDemo) {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < 1; attempt += 1) {
       try {
         candidate = GenerateProjectResponse.parse(
           normalizeProviderResult(await generateWithProvider(input)),
