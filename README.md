@@ -21,6 +21,7 @@ Add `MODEL_API_KEY` as a Replit Secret. It is read only by the API server.
 
 Optional server environment variables:
 
+- `MODEL_PROVIDER` — `openai` or `anthropic`
 - `MODEL_API_URL` — OpenAI-compatible chat completions endpoint
 - `MODEL_NAME` — model name; defaults to `gpt-5-mini`
 - `DEMO_MODE=true` — always use deterministic sample projects

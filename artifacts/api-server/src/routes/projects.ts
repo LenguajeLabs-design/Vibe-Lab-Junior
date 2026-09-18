@@ -53,7 +53,11 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
         break;
       } catch (error) {
         req.log.warn(
-          { attempt: attempt + 1, errorId: "project-generation-rejected" },
+          {
+            attempt: attempt + 1,
+            errorId: "project-generation-rejected",
+            reason: error instanceof Error ? error.message : "Unknown provider error",
+          },
           "Project generation attempt failed",
         );
       }
