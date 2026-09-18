@@ -19,10 +19,10 @@ export function LearningExplanation({ project, onClose }: LearningExplanationPro
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 50, scale: 0.95 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-      className="fixed inset-4 md:inset-auto md:bottom-24 md:right-8 md:w-[450px] md:max-h-[70vh] bg-white rounded-3xl shadow-xl border-4 border-white z-50 flex flex-col overflow-hidden"
+      className="fixed inset-3 sm:inset-4 md:inset-y-6 md:left-auto md:right-6 md:w-[min(520px,calc(100vw-3rem))] bg-white rounded-3xl shadow-xl border-4 border-white z-50 flex min-h-0 flex-col overflow-hidden"
       data-testid="learning-explanation-modal"
     >
-      <div className="bg-accent/20 p-4 border-b border-accent/20 flex items-center justify-between sticky top-0 z-10">
+      <div className="flex-none bg-accent/20 p-4 border-b border-accent/20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="bg-accent text-accent-foreground p-2 rounded-full">
             <Lightbulb className="w-6 h-6" />
@@ -34,8 +34,8 @@ export function LearningExplanation({ project, onClose }: LearningExplanationPro
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-6">
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="space-y-6 p-5 sm:p-6 pr-7">
           <p className="text-lg text-foreground font-medium">
             {project.summary}
           </p>
