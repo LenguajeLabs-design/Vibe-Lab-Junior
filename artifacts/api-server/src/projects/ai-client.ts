@@ -27,6 +27,9 @@ export async function generateWithProvider(input: GenerationInput): Promise<unkn
           "x-api-key": apiKey,
           "anthropic-version": "2023-06-01",
           "Content-Type": "application/json",
+          ...(process.env.ANTHROPIC_WORKSPACE_ID
+            ? { "anthropic-workspace-id": process.env.ANTHROPIC_WORKSPACE_ID }
+            : {}),
         },
         body: JSON.stringify({
           model: process.env.MODEL_NAME ?? DEFAULT_ANTHROPIC_MODEL,
@@ -37,7 +40,14 @@ export async function generateWithProvider(input: GenerationInput): Promise<unkn
         signal: controller.signal,
       });
 
-      if (!response.ok) throw new Error(`Anthropic returned HTTP ${response.status}`);
+      if (!response.ok) {
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: { type?: string; message?: string };
+        } | null;
+        const errorType = errorPayload?.error?.type ?? "unknown_error";
+        const errorMessage = errorPayload?.error?.message ?? "No error detail returned";
+        throw new Error(`Anthropic HTTP ${response.status} ${errorType}: ${errorMessage}`);
+      }
 
       const payload = (await response.json()) as {
         content?: Array<{ type?: string; text?: string }>;

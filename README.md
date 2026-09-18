@@ -24,6 +24,7 @@ Optional server environment variables:
 - `MODEL_PROVIDER` — `openai` or `anthropic`
 - `MODEL_API_URL` — OpenAI-compatible chat completions endpoint
 - `MODEL_NAME` — model name; defaults to `gpt-5-mini`
+- `ANTHROPIC_WORKSPACE_ID` — required for Anthropic keys that are not scoped to one workspace
 - `DEMO_MODE=true` — always use deterministic sample projects
 
 If the key is missing or generation fails, the app keeps working with safe demo projects.
