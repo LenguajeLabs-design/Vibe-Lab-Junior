@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Project } from '@workspace/api-client-react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 interface ProjectViewerProps {
   project: Project;
@@ -7,8 +8,10 @@ interface ProjectViewerProps {
 }
 
 export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
+  const viewerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const getSrcDoc = (p: Project) => {
     return `
@@ -50,9 +53,35 @@ export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
     return () => clearTimeout(timer);
   }, [project]);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === viewerRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await viewerRef.current?.requestFullscreen();
+      }
+    } catch {
+      // Some browsers can deny fullscreen without a user-visible exception.
+    }
+  };
+
   return (
     <div 
-      className="relative w-full h-full bg-white rounded-3xl overflow-hidden border-2 border-white shadow-[0px_6px_18px_rgba(35,50,80,0.09)] isolate"
+      ref={viewerRef}
+      className={`relative w-full h-full bg-white overflow-hidden isolate ${
+        isFullscreen
+          ? 'rounded-none border-0 shadow-none'
+          : 'rounded-3xl border-2 border-white shadow-[0px_6px_18px_rgba(35,50,80,0.09)]'
+      }`}
       data-testid="project-viewer-container"
     >
       <iframe
@@ -60,9 +89,22 @@ export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
         title={project.title}
         srcDoc={getSrcDoc(project)}
         sandbox="allow-scripts"
+        allow="fullscreen"
         className="w-full h-full border-0 bg-white"
         data-testid="project-iframe"
       />
+
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        className="absolute right-3 top-3 z-20 inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground/85 px-3 text-sm font-bold text-white shadow-lg backdrop-blur-sm transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
+        aria-label={isFullscreen ? 'Exit full screen' : 'View project full screen'}
+        title={isFullscreen ? 'Exit full screen' : 'View project full screen'}
+        data-testid="button-fullscreen"
+      >
+        {isFullscreen ? <Minimize2 className="h-5 w-5" aria-hidden="true" /> : <Maximize2 className="h-5 w-5" aria-hidden="true" />}
+        <span className="hidden sm:inline">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
+      </button>
       
       {isUpdating && (
         <div 
