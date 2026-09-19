@@ -56,40 +56,49 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 45 40% 96%;
-  --foreground: 220 40% 20%;
-  --border: 220 15% 85%;
+  --background: 220 24% 98%;
+  --foreground: 225 35% 18%;
+  --border: 220 18% 90%;
   --card: 0 0% 100%;
-  --card-foreground: 220 40% 20%;
-  --card-border: 45 20% 90%;
+  --card-foreground: 225 35% 18%;
+  --card-border: 220 18% 92%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 40% 20%;
-  --popover-border: 220 15% 85%;
-  --primary: 340 80% 55%;
+  --popover-foreground: 225 35% 18%;
+  --popover-border: 220 18% 90%;
+  --primary: 250 72% 62%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 190 85% 45%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 45 20% 90%;
-  --muted-foreground: 220 20% 40%;
-  --accent: 45 95% 55%;
-  --accent-foreground: 220 40% 20%;
+  --secondary: 198 75% 93%;
+  --secondary-foreground: 225 35% 18%;
+  --muted: 220 24% 96%;
+  --muted-foreground: 220 15% 45%;
+  --accent: 264 75% 95%;
+  --accent-foreground: 225 35% 18%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --input: 220 15% 85%;
-  --ring: 340 80% 55%;
+  --input: 220 18% 88%;
+  --ring: 250 72% 62%;
 
   --app-font-sans: ui-rounded, 'Avenir Next', 'Segoe UI', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: ui-monospace, 'SFMono-Regular', Consolas, monospace;
   
-  --radius: 1.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(220 40% 20% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(220 40% 20% / 0.05);
-  --shadow-sm: 0px 4px 0px 0px hsl(220 40% 20% / 0.08);
-  --shadow: 0px 6px 0px 0px hsl(220 40% 20% / 0.1);
-  --shadow-md: 0px 8px 0px 0px hsl(220 40% 20% / 0.12);
-  --shadow-lg: 0px 12px 0px 0px hsl(220 40% 20% / 0.15);
-  --shadow-xl: 0px 16px 0px 0px hsl(220 40% 20% / 0.15);
+  --radius: 1rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --shadow-2xs: 0 1px 2px hsl(222 36% 18% / 0.04);
+  --shadow-xs: 0 2px 6px hsl(222 36% 18% / 0.05);
+  --shadow-sm: 0 4px 12px hsl(222 36% 18% / 0.06);
+  --shadow: 0 8px 24px hsl(222 36% 18% / 0.07);
+  --shadow-md: 0 12px 32px hsl(222 36% 18% / 0.08);
+  --shadow-lg: 0 18px 44px hsl(222 36% 18% / 0.09);
+  --shadow-xl: 0 24px 60px hsl(222 36% 18% / 0.1);
   
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -115,26 +124,26 @@
   --popover: 220 40% 14%;
   --popover-foreground: 45 40% 96%;
   --popover-border: 220 40% 20%;
-  --primary: 340 80% 65%;
+  --primary: 250 72% 70%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 190 85% 55%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 198 32% 25%;
+  --secondary-foreground: 45 40% 96%;
   --muted: 220 40% 20%;
   --muted-foreground: 220 20% 70%;
-  --accent: 45 95% 65%;
-  --accent-foreground: 220 40% 10%;
+  --accent: 264 34% 28%;
+  --accent-foreground: 45 40% 96%;
   --destructive: 0 84% 65%;
   --destructive-foreground: 0 0% 100%;
-  --input: 220 40% 20%;
-  --ring: 340 80% 65%;
+  --input: 220 30% 28%;
+  --ring: 250 72% 70%;
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-sm: 0px 4px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow: 0px 6px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-md: 0px 8px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-lg: 0px 12px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-xl: 0px 16px 0px 0px hsl(0 0% 0% / 0.5);
+  --shadow-2xs: 0 1px 2px hsl(0 0% 0% / 0.25);
+  --shadow-xs: 0 2px 6px hsl(0 0% 0% / 0.25);
+  --shadow-sm: 0 4px 12px hsl(0 0% 0% / 0.24);
+  --shadow: 0 8px 24px hsl(0 0% 0% / 0.24);
+  --shadow-md: 0 12px 32px hsl(0 0% 0% / 0.26);
+  --shadow-lg: 0 18px 44px hsl(0 0% 0% / 0.28);
+  --shadow-xl: 0 24px 60px hsl(0 0% 0% / 0.3);
 }
 
 @layer base {
@@ -177,5 +186,16 @@
   }
   .hover-elevate:hover::after {
     background-color: var(--elevate-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

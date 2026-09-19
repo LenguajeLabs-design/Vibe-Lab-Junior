@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 const EXAMPLES = [
   "A game where a cat catches stars",
@@ -38,6 +39,10 @@ type UpdateAction = Exclude<
   (typeof ProjectGenerationRequestAction)[keyof typeof ProjectGenerationRequestAction],
   "create"
 >;
+
+type Confirmation =
+  | { kind: "delete"; project: SavedProject }
+  | { kind: "start-over" };
 
 const UPDATE_COPY: Record<
   UpdateAction,
@@ -83,6 +88,7 @@ export default function Home() {
   );
   const [explanationVisible, setExplanationVisible] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const generateProject = useGenerateProject({
     mutation: {
@@ -223,8 +229,10 @@ export default function Home() {
   };
 
   const handleDeleteSaved = (saved: SavedProject) => {
-    if (!window.confirm("Delete this saved project from this device?")) return;
+    setConfirmation({ kind: "delete", project: saved });
+  };
 
+  const confirmDeleteSaved = (saved: SavedProject) => {
     try {
       deleteSavedProject(saved.id);
       setSavedProjects(getSavedProjects());
@@ -241,19 +249,21 @@ export default function Home() {
         duration: 5000,
       });
     }
+    setConfirmation(null);
   };
 
   const startOver = () => {
-    if (
-      window.confirm("Start a new project? Your current project will close.")
-    ) {
-      setCurrentProject(null);
-      setSavedProjectId(null);
-      setIdea("");
-      setUpdateIdea("");
-      setSelectedAction(null);
-      setExplanationVisible(false);
-    }
+    setConfirmation({ kind: "start-over" });
+  };
+
+  const confirmStartOver = () => {
+    setCurrentProject(null);
+    setSavedProjectId(null);
+    setIdea("");
+    setUpdateIdea("");
+    setSelectedAction(null);
+    setExplanationVisible(false);
+    setConfirmation(null);
   };
 
   return (
@@ -265,38 +275,45 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center p-6 max-w-3xl mx-auto w-full"
+            className="flex-1 flex flex-col items-center justify-center p-5 sm:p-6 max-w-3xl mx-auto w-full"
           >
-            <div className="text-center space-y-4 mb-10">
+            <div className="text-center space-y-3 mb-8">
               <h1>
                 <img
                   src={LOGO_URL}
                   alt="Vibe Lab Junior"
-                  className="w-full max-w-[520px] h-auto mx-auto"
+                  className="w-full max-w-[380px] h-auto mx-auto"
                   data-testid="img-brand-logo"
                 />
               </h1>
-              <p className="text-xl md:text-2xl text-foreground/70 font-medium">
+              <p className="text-lg md:text-xl text-foreground/70 font-medium">
                 Turn your ideas into tiny, playable projects.
               </p>
             </div>
 
-            <div className="w-full bg-card rounded-[2rem] shadow-xl p-6 md:p-8 border-4 border-white relative">
+            <div className="w-full bg-card rounded-3xl shadow-sm p-5 sm:p-6 md:p-7 border border-card-border relative">
               <label
                 htmlFor="idea"
-                className="block text-2xl font-bold text-foreground mb-4"
+                className="block text-xl font-bold text-foreground"
               >
                 What should we make?
               </label>
+              <p id="idea-help" className="mt-2 mb-3 text-sm text-muted-foreground">
+                Start with something you want to play with, like a cat catching stars.
+              </p>
               <Textarea
                 id="idea"
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 placeholder="A piano you can play with your mouse..."
-                className="text-xl p-6 mb-6 rounded-2xl border-4"
+                aria-describedby="idea-help"
+                className="text-lg p-4 sm:p-5 mb-4 rounded-2xl border"
                 data-testid="input-idea"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (
+                    e.key === "Enter" &&
+                    (e.metaKey || e.ctrlKey)
+                  ) {
                     e.preventDefault();
                     handleCreate();
                   }
@@ -304,7 +321,7 @@ export default function Home() {
               />
               <Button
                 size="lg"
-                className="w-full h-16 text-2xl rounded-2xl shadow-md"
+                className="w-full h-14 text-xl rounded-xl shadow-sm"
                 onClick={handleCreate}
                 disabled={!idea.trim() || isGenerating}
                 data-testid="button-make-it"
@@ -312,16 +329,16 @@ export default function Home() {
                 <Wand2 className="w-8 h-8 mr-2" />✨ Make it
               </Button>
 
-              <div className="mt-8 pt-8 border-t-2 border-border/50">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">
+              <div className="mt-6 pt-6 border-t border-border/70">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
                   Need inspiration? Try these:
                 </p>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap gap-2">
                   {EXAMPLES.map((ex, i) => (
                     <button
                       key={i}
                       onClick={() => setIdea(ex)}
-                      className="text-left bg-muted/30 hover:bg-accent/20 hover:text-accent-foreground text-foreground font-medium p-4 rounded-xl transition-colors border-2 border-transparent hover:border-accent/30"
+                      className="min-h-11 text-left bg-muted/60 hover:bg-accent/40 hover:text-accent-foreground text-foreground text-sm font-medium px-4 py-2.5 rounded-full transition-colors border border-transparent hover:border-accent/50"
                       data-testid={`example-${i}`}
                     >
                       {ex}
@@ -337,7 +354,7 @@ export default function Home() {
               onDelete={handleDeleteSaved}
             />
 
-            <p className="mt-12 text-sm font-medium text-muted-foreground text-center flex items-center justify-center gap-2">
+            <p className="mt-8 text-sm font-medium text-muted-foreground text-center flex items-center justify-center gap-2">
               <Info className="w-4 h-4" />
               Your idea is sent to the app’s helper. Nothing is saved unless you
               choose to save a project.
@@ -352,6 +369,10 @@ export default function Home() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center p-6 text-center"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-busy="true"
             data-testid="full-screen-loading"
           >
             <div className="relative">
@@ -398,7 +419,7 @@ export default function Home() {
                     data-testid="img-header-logo"
                   />
                   <div>
-                    <h1 className="hidden md:block text-xl font-bold text-foreground leading-tight truncate">
+                    <h1 className="sr-only md:not-sr-only text-xl font-bold text-foreground leading-tight truncate">
                       {currentProject.title}
                     </h1>
                   </div>
@@ -419,7 +440,7 @@ export default function Home() {
 
               <main className="flex-1 relative p-3 sm:p-4 lg:p-6 bg-muted/30 overflow-y-auto flex flex-col gap-4 lg:gap-6">
                 {/* Project display */}
-                <div className="flex-none w-full h-[clamp(360px,52vh,460px)] md:h-[clamp(480px,55vh,620px)] relative">
+                <div className="flex-none w-full h-[clamp(300px,42vh,400px)] md:h-[clamp(480px,55vh,620px)] relative">
                   <ProjectViewer
                     project={currentProject}
                     isUpdating={isGenerating}
@@ -446,45 +467,62 @@ export default function Home() {
                   </div>
                   {!selectedAction ? (
                     <>
-                      <h2 className="text-lg font-bold text-foreground">
-                        What next?
-                      </h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
-                        {(Object.keys(UPDATE_COPY) as UpdateAction[]).map(
-                          (action) => (
-                            <Button
-                              key={action}
-                              variant={
-                                action === "change"
-                                  ? "accent"
-                                  : action === "fix"
-                                    ? "outline"
-                                    : "default"
-                              }
-                              className="w-full min-h-14 justify-start rounded-xl font-bold focus-visible:ring-4 focus-visible:ring-ring/40"
-                              onClick={() => setSelectedAction(action)}
-                              disabled={isGenerating}
-                              data-testid={`button-${action}`}
-                            >
-                              <span className="mr-3 text-lg" aria-hidden="true">
-                                {UPDATE_COPY[action].emoji}
-                              </span>
-                              {UPDATE_COPY[action].title}
-                            </Button>
-                          ),
-                        )}
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <h2 className="text-lg font-bold text-foreground">
+                            What next?
+                          </h2>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Keep your project moving with one small idea.
+                          </p>
+                        </div>
+                        <Button
+                          variant="default"
+                          className="w-full min-h-14 justify-center rounded-xl font-bold focus-visible:ring-4 focus-visible:ring-ring/40"
+                          onClick={() => setSelectedAction("change")}
+                          disabled={isGenerating}
+                          data-testid="button-change"
+                        >
+                          <span className="text-lg" aria-hidden="true">
+                            {UPDATE_COPY.change.emoji}
+                          </span>
+                          Make a change
+                        </Button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full font-bold"
+                          onClick={() => setSelectedAction("add")}
+                          disabled={isGenerating}
+                          data-testid="button-add"
+                        >
+                          <span aria-hidden="true">{UPDATE_COPY.add.emoji}</span>
+                          {UPDATE_COPY.add.title}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full font-bold"
+                          onClick={() => setSelectedAction("fix")}
+                          disabled={isGenerating}
+                          data-testid="button-fix"
+                        >
+                          <span aria-hidden="true">{UPDATE_COPY.fix.emoji}</span>
+                          {UPDATE_COPY.fix.title}
+                        </Button>
                         <DialogPrimitive.Trigger asChild>
                           <Button
-                            variant="secondary"
-                            className="w-full min-h-14 justify-start rounded-xl font-bold focus-visible:ring-4 focus-visible:ring-ring/40"
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full font-bold text-muted-foreground"
                             disabled={isGenerating}
                             data-testid="button-see-how"
                           >
-                            <Lightbulb
-                              className="w-5 h-5 mr-3"
-                              aria-hidden="true"
-                            />
-                            See how it works
+                            <Lightbulb aria-hidden="true" />
+                            How it works
                           </Button>
                         </DialogPrimitive.Trigger>
                       </div>
@@ -544,6 +582,52 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AlertDialogPrimitive.Root
+        open={confirmation !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmation(null);
+        }}
+      >
+        <AlertDialogPrimitive.Portal>
+          <AlertDialogPrimitive.Overlay className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <AlertDialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-card-border bg-card p-6 shadow-xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+            <AlertDialogPrimitive.Title className="text-xl font-bold text-foreground">
+              {confirmation?.kind === "delete"
+                ? "Delete this project?"
+                : "Start a new project?"}
+            </AlertDialogPrimitive.Title>
+            <AlertDialogPrimitive.Description className="mt-2 text-sm leading-6 text-muted-foreground">
+              {confirmation?.kind === "delete"
+                ? "This removes the saved copy from this device. Your other projects will stay safe."
+                : "Your current project will close. Save it first if you want to keep a copy."}
+            </AlertDialogPrimitive.Description>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <AlertDialogPrimitive.Cancel asChild>
+                <Button type="button" variant="ghost" className="rounded-xl">
+                  Keep it
+                </Button>
+              </AlertDialogPrimitive.Cancel>
+              <AlertDialogPrimitive.Action asChild>
+                <Button
+                  type="button"
+                  variant={confirmation?.kind === "delete" ? "destructive" : "default"}
+                  className="rounded-xl"
+                  onClick={() => {
+                    if (confirmation?.kind === "delete") {
+                      confirmDeleteSaved(confirmation.project);
+                    } else {
+                      confirmStartOver();
+                    }
+                  }}
+                >
+                  {confirmation?.kind === "delete" ? "Delete project" : "Start over"}
+                </Button>
+              </AlertDialogPrimitive.Action>
+            </div>
+          </AlertDialogPrimitive.Content>
+        </AlertDialogPrimitive.Portal>
+      </AlertDialogPrimitive.Root>
     </div>
   );
 }

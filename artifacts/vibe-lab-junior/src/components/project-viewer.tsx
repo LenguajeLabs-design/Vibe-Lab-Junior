@@ -43,16 +43,12 @@ export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
 
   useEffect(() => {
     setLoading(true);
-    // Add a tiny delay to allow the iframe to process the srcDoc change and show loading state if desired
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
   }, [project]);
 
   return (
     <div 
       className="relative w-full h-full bg-white rounded-3xl overflow-hidden border-2 border-white shadow-[0px_6px_18px_rgba(35,50,80,0.09)] isolate"
+      aria-busy={loading || isUpdating}
       data-testid="project-viewer-container"
     >
       <iframe
@@ -61,12 +57,27 @@ export function ProjectViewer({ project, isUpdating }: ProjectViewerProps) {
         srcDoc={getSrcDoc(project)}
         sandbox="allow-scripts"
         className="w-full h-full border-0 bg-white"
+        onLoad={() => setLoading(false)}
         data-testid="project-iframe"
       />
+
+      {loading && !isUpdating && (
+        <div
+          className="absolute inset-0 bg-card flex flex-col items-center justify-center gap-3"
+          role="status"
+          aria-live="polite"
+          data-testid="project-loading-state"
+        >
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" aria-hidden="true" />
+          <p className="text-sm font-semibold text-muted-foreground">Opening your project…</p>
+        </div>
+      )}
       
       {isUpdating && (
         <div 
           className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center animate-in fade-in duration-300"
+          role="status"
+          aria-live="polite"
           data-testid="project-updating-overlay"
         >
           <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
