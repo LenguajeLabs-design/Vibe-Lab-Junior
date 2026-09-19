@@ -17,7 +17,7 @@ export function LearningExplanation({ project }: LearningExplanationProps) {
     <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
-          className="fixed inset-3 sm:inset-4 md:inset-y-6 md:left-auto md:right-6 md:w-[min(520px,calc(100vw-3rem))] bg-white rounded-3xl shadow-xl border-4 border-white z-50 flex min-h-0 flex-col overflow-hidden focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+          className="fixed inset-3 sm:inset-4 md:inset-y-6 md:left-auto md:right-6 md:w-[min(520px,calc(100vw-3rem))] bg-card rounded-3xl shadow-xl border-4 border-card-border z-50 flex min-h-0 flex-col overflow-hidden focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
           data-testid="learning-explanation-modal"
           aria-labelledby="how-it-works-title"
           aria-describedby="how-it-works-summary"

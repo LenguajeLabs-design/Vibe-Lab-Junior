@@ -377,7 +377,7 @@ export default function Home() {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
-              <div className="w-32 h-32 bg-white rounded-3xl shadow-xl border-4 border-primary/20 flex items-center justify-center relative z-10 animate-bounce">
+              <div className="w-32 h-32 bg-card rounded-3xl shadow-xl border-4 border-primary/20 flex items-center justify-center relative z-10 animate-bounce">
                 <Wand2 className="w-16 h-16 text-primary animate-pulse" />
               </div>
             </div>
