@@ -12,6 +12,8 @@ const router: IRouter = Router();
 const attemptsByClient = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 12;
+const PROVIDER_ATTEMPTS = 2;
+const PROVIDER_RETRY_DELAY_MS = 350;
 
 function normalizeProviderResult(value: unknown): unknown {
   if (!value || typeof value !== "object") return value;
@@ -73,7 +75,7 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
   let candidate: GenerationResult | undefined;
 
   if (!useDemo) {
-    for (let attempt = 0; attempt < 1; attempt += 1) {
+    for (let attempt = 0; attempt < PROVIDER_ATTEMPTS; attempt += 1) {
       try {
         candidate = GenerateProjectResponse.parse(
           normalizeProviderResult(await generateWithProvider(input)),
@@ -93,6 +95,10 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
           },
           "Project generation attempt failed",
         );
+
+        if (attempt < PROVIDER_ATTEMPTS - 1) {
+          await new Promise((resolve) => setTimeout(resolve, PROVIDER_RETRY_DELAY_MS));
+        }
       }
     }
   }
