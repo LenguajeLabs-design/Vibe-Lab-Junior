@@ -16,8 +16,9 @@ const corsOrigin: cors.CorsOptions["origin"] = (origin, callback) => {
     return;
   }
   const isLocalDevelopment =
-    /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin) ||
-    /^https:\/\/[^/]+\.replit\.dev$/.test(origin);
+    process.env.NODE_ENV !== "production" &&
+    (/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin) ||
+      /^https:\/\/[^/]+\.replit\.dev$/.test(origin));
   callback(null, isLocalDevelopment || allowedOrigins.includes(origin));
 };
 

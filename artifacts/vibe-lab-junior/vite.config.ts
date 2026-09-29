@@ -68,6 +68,13 @@ export default defineConfig({
     port,
     strictPort: true,
     host: '0.0.0.0',
+    proxy: {
+      '/api': {
+        target: process.env.API_PROXY_TARGET ?? 'https://vibe-lab-junior-api.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
     allowedHosts: true,
     fs: {
       strict: true,

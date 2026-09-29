@@ -7,7 +7,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import './index.css';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-if (apiBaseUrl) {
+if (import.meta.env.PROD && apiBaseUrl) {
   setBaseUrl(apiBaseUrl);
 }
 
