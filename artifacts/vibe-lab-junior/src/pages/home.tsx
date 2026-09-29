@@ -35,6 +35,27 @@ const EXAMPLES = [
   "A space button that makes planets move",
 ];
 
+const THINKING_PROMPTS = [
+  {
+    id: "player",
+    question: "What does the player get to do?",
+    placeholder: "Catch stars, solve a mystery, or build a robot...",
+  },
+  {
+    id: "goal",
+    question: "What is the goal?",
+    placeholder: "Try to get the highest score or reach the moon...",
+  },
+  {
+    id: "feeling",
+    question: "How should it feel?",
+    placeholder: "Silly, surprising, calm, or full of color...",
+  },
+] as const;
+
+type ThinkingPromptId = (typeof THINKING_PROMPTS)[number]["id"];
+type ThinkingPromptAnswers = Record<ThinkingPromptId, string>;
+
 type UpdateAction = Exclude<
   (typeof ProjectGenerationRequestAction)[keyof typeof ProjectGenerationRequestAction],
   "create"
@@ -82,6 +103,9 @@ export default function Home() {
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [idea, setIdea] = useState("");
+  const [creationStep, setCreationStep] = useState<1 | 2>(1);
+  const [thinkingPromptAnswers, setThinkingPromptAnswers] =
+    useState<ThinkingPromptAnswers>({ player: "", goal: "", feeling: "" });
   const [updateIdea, setUpdateIdea] = useState("");
   const [selectedAction, setSelectedAction] = useState<UpdateAction | null>(
     null,
@@ -120,11 +144,20 @@ export default function Home() {
   const handleCreate = () => {
     if (!idea.trim()) return;
 
+    const guidedDetails = THINKING_PROMPTS.map(({ id, question }) => {
+      const answer = thinkingPromptAnswers[id].trim();
+      return answer ? `${question} ${answer}` : null;
+    }).filter(Boolean);
+
+    const completeIdea = guidedDetails.length
+      ? `${idea.trim()}\n\nHere are a few thoughts from the creator:\n${guidedDetails.map((detail) => `- ${detail}`).join("\n")}`
+      : idea.trim();
+
     generateProject.mutate(
       {
         data: {
           action: ProjectGenerationRequestAction.create,
-          idea,
+          idea: completeIdea,
         },
       },
       {
@@ -156,6 +189,11 @@ export default function Home() {
         },
       },
     );
+  };
+
+  const handleShapeIdea = () => {
+    if (!idea.trim()) return;
+    setCreationStep(2);
   };
 
   const handleUpdate = (action: UpdateAction, updateIdea: string) => {
@@ -260,6 +298,8 @@ export default function Home() {
     setCurrentProject(null);
     setSavedProjectId(null);
     setIdea("");
+    setCreationStep(1);
+    setThinkingPromptAnswers({ player: "", goal: "", feeling: "" });
     setUpdateIdea("");
     setSelectedAction(null);
     setExplanationVisible(false);
@@ -275,7 +315,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center p-5 sm:p-6 max-w-3xl mx-auto w-full"
+            className="flex-1 flex flex-col items-center justify-center p-5 sm:p-6 max-w-5xl mx-auto w-full"
           >
             <div className="text-center space-y-3 mb-8">
               <h1>
@@ -292,60 +332,132 @@ export default function Home() {
             </div>
 
             <div className="w-full bg-card rounded-3xl shadow-sm p-5 sm:p-6 md:p-7 border border-card-border relative">
-              <label
-                htmlFor="idea"
-                className="block text-xl font-bold text-foreground"
-              >
-                What should we make?
-              </label>
-              <p id="idea-help" className="mt-2 mb-3 text-sm text-muted-foreground">
-                Start with something you want to play with, like a cat catching stars.
-              </p>
-              <Textarea
-                id="idea"
-                value={idea}
-                onChange={(e) => setIdea(e.target.value)}
-                placeholder="A piano you can play with your mouse..."
-                aria-describedby="idea-help"
-                className="text-lg p-4 sm:p-5 mb-4 rounded-2xl border"
-                data-testid="input-idea"
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    (e.metaKey || e.ctrlKey)
-                  ) {
-                    e.preventDefault();
-                    handleCreate();
-                  }
-                }}
-              />
-              <Button
-                size="lg"
-                className="w-full h-14 text-xl rounded-xl shadow-sm"
-                onClick={handleCreate}
-                disabled={!idea.trim() || isGenerating}
-                data-testid="button-make-it"
-              >
-                <Wand2 className="w-8 h-8 mr-2" />✨ Make it
-              </Button>
+              {creationStep === 1 ? (
+                <div>
+                  <label
+                    htmlFor="idea"
+                    className="block text-xl font-bold text-foreground"
+                  >
+                    What should we make?
+                  </label>
+                  <p id="idea-help" className="mt-2 mb-3 text-sm text-muted-foreground">
+                    Start with your big idea. You can add a few thoughts beside it, and the helper will connect them.
+                  </p>
+                  <Textarea
+                    id="idea"
+                    value={idea}
+                    onChange={(e) => setIdea(e.target.value)}
+                    placeholder="A piano you can play with your mouse..."
+                    aria-describedby="idea-help"
+                    className="min-h-36 text-lg p-4 sm:p-5 mb-4 rounded-2xl border"
+                    data-testid="input-idea"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        handleShapeIdea();
+                      }
+                    }}
+                  />
+                  <Button
+                    size="lg"
+                    className="w-full h-14 text-xl rounded-xl shadow-sm"
+                    onClick={handleShapeIdea}
+                    disabled={!idea.trim() || isGenerating}
+                    data-testid="button-make-it"
+                  >
+                    <Wand2 className="w-8 h-8 mr-2" />✨ Shape my idea
+                  </Button>
 
-              <div className="mt-6 pt-6 border-t border-border/70">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                  Need inspiration? Try these:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {EXAMPLES.map((ex, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setIdea(ex)}
-                      className="min-h-11 text-left bg-muted/60 hover:bg-accent/40 hover:text-accent-foreground text-foreground text-sm font-medium px-4 py-2.5 rounded-full transition-colors border border-transparent hover:border-accent/50"
-                      data-testid={`example-${i}`}
-                    >
-                      {ex}
-                    </button>
-                  ))}
+                  <div className="mt-6 pt-6 border-t border-border/70">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                      Need inspiration? Try these:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {EXAMPLES.map((ex, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setIdea(ex)}
+                          className="min-h-11 text-left bg-muted/60 hover:bg-accent/40 hover:text-accent-foreground text-foreground text-sm font-medium px-4 py-2.5 rounded-full transition-colors border border-transparent hover:border-accent/50"
+                          data-testid={`example-${i}`}
+                        >
+                          {ex}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground mb-3"
+                        onClick={() => setCreationStep(1)}
+                        data-testid="button-back-to-idea"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to my idea
+                      </button>
+                      <h2 className="text-2xl font-bold text-foreground">
+                        Shape your idea
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Answer any questions that help. The helper will use your thoughts to build the project.
+                      </p>
+                    </div>
+                    <span className="text-2xl" aria-hidden="true">💭</span>
+                  </div>
+
+                  <div className="rounded-2xl bg-muted/45 p-4 sm:p-5 border border-border/70">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                      Your idea
+                    </p>
+                    <p className="text-lg font-medium text-foreground whitespace-pre-wrap">
+                      {idea}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {THINKING_PROMPTS.map(({ id, question, placeholder }) => (
+                      <div key={id}>
+                        <label htmlFor={`thinking-${id}`} className="block text-sm font-bold text-foreground mb-1.5">
+                          {question}
+                        </label>
+                        <Textarea
+                          id={`thinking-${id}`}
+                          value={thinkingPromptAnswers[id]}
+                          onChange={(event) =>
+                            setThinkingPromptAnswers((answers) => ({
+                              ...answers,
+                              [id]: event.target.value,
+                            }))
+                          }
+                          placeholder={placeholder}
+                          className="min-h-24 resize-y rounded-xl bg-background text-sm"
+                          data-testid={`input-thinking-${id}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="w-full h-14 text-xl rounded-xl shadow-sm"
+                      onClick={handleCreate}
+                      disabled={isGenerating}
+                      data-testid="button-make-it"
+                    >
+                      <Wand2 className="w-8 h-8 mr-2" />✨ Make it
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Your answers are only used to help make this project.
+                  </p>
+                </div>
+              )}
             </div>
 
             <SavedProjects
@@ -440,7 +552,7 @@ export default function Home() {
 
               <main className="flex-1 relative p-3 sm:p-4 lg:p-6 bg-muted/30 overflow-y-auto flex flex-col gap-4 lg:gap-6">
                 {/* Project display */}
-                <div className="flex-none w-full h-[clamp(300px,42vh,400px)] md:h-[clamp(480px,55vh,620px)] relative">
+                <div className="flex-none w-full h-[clamp(360px,56vh,520px)] sm:h-[clamp(420px,60vh,620px)] md:h-[clamp(560px,64vh,760px)] relative">
                   <ProjectViewer
                     project={currentProject}
                     isUpdating={isGenerating}
