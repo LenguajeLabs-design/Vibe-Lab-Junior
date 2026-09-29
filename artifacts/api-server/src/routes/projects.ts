@@ -12,8 +12,8 @@ const router: IRouter = Router();
 const attemptsByClient = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 12;
-const PROVIDER_ATTEMPTS = 2;
-const PROVIDER_RETRY_DELAY_MS = 350;
+const PROVIDER_ATTEMPTS = 3;
+const PROVIDER_RETRY_DELAY_MS = 1_000;
 
 function normalizeProviderResult(value: unknown): unknown {
   if (!value || typeof value !== "object") return value;
@@ -71,10 +71,16 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
   }
 
   const input = parsed.data as GenerationInput;
-  const useDemo = process.env.DEMO_MODE === "true" || !process.env.MODEL_API_KEY;
+  const demoMode = process.env.DEMO_MODE === "true";
   let candidate: GenerationResult | undefined;
 
-  if (!useDemo) {
+  if (!demoMode && !process.env.MODEL_API_KEY) {
+    req.log.error({ errorId: "model-api-key-missing" }, "Project generation is not configured");
+    res.status(503).json({ error: "The creative helper is not ready yet. Please try again soon." });
+    return;
+  }
+
+  if (!demoMode) {
     for (let attempt = 0; attempt < PROVIDER_ATTEMPTS; attempt += 1) {
       try {
         candidate = GenerateProjectResponse.parse(
@@ -103,8 +109,22 @@ router.post("/projects/generate", async (req, res): Promise<void> => {
     }
   }
 
-  if (!candidate) {
+  if (!candidate && !demoMode) {
+    req.log.error(
+      { errorId: "project-generation-unavailable" },
+      "Project generation failed after provider retries",
+    );
+    res.status(503).json({ error: "The creative helper is busy. Please try again." });
+    return;
+  }
+
+  if (!candidate && demoMode) {
     candidate = getDemoResult(input);
+  }
+
+  if (!candidate) {
+    res.status(503).json({ error: "The creative helper is busy. Please try again." });
+    return;
   }
 
   const safetyIssues = validateProjectSafety(candidate.project);
